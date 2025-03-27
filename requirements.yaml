@@ -1,0 +1,7 @@
+name: mail-filter
+dependencies:
+  - matplotlib
+  - numpy
+  - pylzma
+  - ipykernel
+  - jupyter
