@@ -7,6 +7,7 @@ import Sign from './Sign.jsx'
 import Form from './Form.jsx'
 import ResetPass from './ResetPass.jsx'
 import Success from './Success.jsx'
+import Dashboard from './Dashboard.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -16,6 +17,7 @@ createRoot(document.getElementById('root')).render(
       <Route path="/form" element={<Form/>}/>
       <Route path="/reset" element={<ResetPass/>}/>
       <Route path="/success" element={<Success/>}/>
+      <Route path="/dashboard" element={<Dashboard/>}/>
     </Routes>
     </BrowserRouter>
   </StrictMode>

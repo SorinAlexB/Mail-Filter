@@ -48,8 +48,8 @@ const Form = () => {
             }
 
             if(!response.ok){
-                alert('"Something went wrong, please try again!"')
-                setErrorMessage("Something wen wrong, please try again!");
+                alert("Something went wrong, please try again!");
+                setErrorMessage("Something went wrong, please try again!");
                 return;
             }
             navigate('/success');

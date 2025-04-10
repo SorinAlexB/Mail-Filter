@@ -21,14 +21,28 @@ def register():
     if collection.find_one({"email" : email}) or collection.find_one({"app_pass" : app_pass}):
         return jsonify({'message': 'Email or app password already registered'}), 409
     else:
-        db_insert(db, collection, name, password, email, app_pass)
+        db_insert(collection, name, password, email, app_pass)
 
     # Respond back with a success message
     return jsonify({'message': 'Data received successfully'})
 
-# @app.route('/', methods=['GET'])
-# def login():
-#     pass
+@app.route('/', methods=['POST'])
+def login():
+    data = request.get_json()
+    if not data:
+        return jsonify({'message': 'No data received'}), 400
+    
+    email = data.get('email')
+    password = data.get('password')
+
+    print(email, password)
+    user=collection.find_one({'email': email})
+    if user:
+        print(user.get('password'))
+        if user.get('password') != password:
+            return jsonify({'message': 'Wrong password'}), 409  
+        return jsonify({'message': 'Login successfully'})
+    return jsonify({'message': 'Account not found!'})
 
 # @app.route('/reset', methods=['GET'])
 # def login():
