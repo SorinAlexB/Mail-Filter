@@ -122,7 +122,7 @@ def log_out(mail) -> None:
     shutil.rmtree("attachments")
     print("Disconnecting...")
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     EMAIL_ACCOUNT = input("Email accout: ")
     PASSWORD = input("App Password: ")
     mail = connection()

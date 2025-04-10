@@ -5,3 +5,5 @@ dependencies:
   - pylzma
   - ipykernel
   - jupyter
+  - flask
+  - npm
