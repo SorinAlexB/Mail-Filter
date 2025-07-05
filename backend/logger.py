@@ -11,8 +11,10 @@ import time
 
 IMAP_SERVER = "imap.gmx.com"
 IMAP_PORT = 993
-EMAIL_ACCOUNT = "scssam@gmx.com"
-PASSWORD = "UCXFMNKF5JNBQ5EUEZIQ"
+
+# Add your credentials in order to test the application
+EMAIL_ACCOUNT = ""
+PASSWORD = ""
 
 """
 Connects to IMAP server using user's credentials
