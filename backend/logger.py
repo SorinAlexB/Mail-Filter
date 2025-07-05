@@ -3,9 +3,16 @@ import email
 from email.header import decode_header
 import os
 import shutil
+from apply_filter import check_profanity
+from translator import translate
+from video_processor import extract_frames, extract_audio
+from image_classification import test_single_image
+import time
 
 IMAP_SERVER = "imap.gmx.com"
 IMAP_PORT = 993
+EMAIL_ACCOUNT = "scssam@gmx.com"
+PASSWORD = "UCXFMNKF5JNBQ5EUEZIQ"
 
 """
 Connects to IMAP server using user's credentials
@@ -35,7 +42,48 @@ def process_mails(mail) -> None:
         for id in emails_ids:
             status, msg_data = mail.fetch(id, "(RFC822)")
             if status == 'OK':
-                parse_and_verify(msg_data, id)
+                email = parse_and_verify(msg_data, id)
+                label_bool = check_profanity(email)
+                print(label_bool)
+                print(email)
+                if(label_bool == True):
+                    delete_mail(id)
+                else:
+                    if os.path.isdir(f"attachments/mail{id.decode()}"):
+                        for filename in os.listdir(f"attachments/mail{id.decode()}"):
+                            _, ext = os.path.splitext(filename)
+                            ext = ext.lower() 
+
+                            if ext == ".mp3" or ext == ".wav":
+                                label_bool = check_profanity(translate(f"attachments/mail{id.decode()}/{filename}"))
+                                print(label_bool)
+                                print(filename)
+                                if label_bool == True:
+                                    delete_mail(id)
+                                    break
+
+                            elif ext == ".png" or ext == ".jpg":
+                                if test_single_image(f"attachments/mail{id.decode()}/{filename}").lower() == "violent":
+                                    delete_mail(id)
+                                    break
+
+                            elif ext == ".mp4":
+                                print("video = foto + audio")
+                                os.makedirs(f"attachments/mail{id.decode()}/photos", exist_ok=True)
+                                extract_frames(f"attachments/mail{id.decode()}/{filename}", f"attachments/mail{id.decode()}/photos")
+                                extract_audio(f"attachments/mail{id.decode()}/{filename}", f"attachments/mail{id.decode()}/audio.mp3")
+                                for photo in os.listdir(f"attachments/mail{id.decode()}/photos"):
+                                    if test_single_image(f"attachments/mail{id.decode()}/photos/{photo}").lower() == "violent":
+                                        delete_mail(id)
+                                        break
+                                label_bool = check_profanity(translate(f"attachments/mail{id.decode()}/audio.mp3"))
+                                print(label_bool)
+                                print(filename)
+                                if label_bool == True:
+                                    delete_mail(id)
+                                    break
+
+
             else:
                 print("Status Error: ",status)
                 exit(1)
@@ -55,25 +103,14 @@ def delete_mail(id) -> None:
 Parse a specific mail in order to verify it's content and
 also it's attachments
 """
-def parse_and_verify(msg_data, id) -> None:
+def parse_and_verify(msg_data, id) -> str:
+    temp_str = ""
     ATTACHMENTS_DIR = f"attachments/mail{id.decode()}"
     os.makedirs(ATTACHMENTS_DIR, exist_ok=True)
 
     for response_part in msg_data:
         if isinstance(response_part, tuple):
             msg = email.message_from_bytes(response_part[1])
-
-            # Decode the email subject
-            subject, encoding = decode_header(msg["Subject"])[0]
-            if isinstance(subject, bytes):
-                subject = subject.decode(encoding if encoding else "utf-8")
-
-            # Decode the sender's email address
-            from_ = msg.get("From")
-
-            print(f"Subject: {subject}")
-            print(f"From: {from_}")
-            print("=" * 50)
 
             has_attachments = False
 
@@ -100,18 +137,17 @@ def parse_and_verify(msg_data, id) -> None:
                     # Extract plain text content
                     elif content_type == "text/plain" and "attachment" not in content_disposition:
                         body = part.get_payload(decode=True).decode()
-                        print("Text Body:")
-                        print(body)
+                        temp_str += body
             else:
                 if msg.get_content_type() == "text/plain":
                     body = msg.get_payload(decode=True).decode()
-                    print("Body:")
-                    print(body)
+                    temp_str += body
 
             if has_attachments:
                 print("This email contains attachments.")
             else:
                 print("No attachments found.")
+    return temp_str
 
 """
 Log out from mail and delete all residual data, i.e. delete
@@ -123,8 +159,9 @@ def log_out(mail) -> None:
     print("Disconnecting...")
 
 if __name__ == '__main__':
-    EMAIL_ACCOUNT = input("Email accout: ")
-    PASSWORD = input("App Password: ")
-    mail = connection()
-    process_mails(mail)
+    t = 20
+    while t:
+        mail = connection()
+        process_mails(mail)
+        time.sleep(5)
     log_out(mail)
