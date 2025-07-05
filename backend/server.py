@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from database import db, collection, db_insert, db_delete
 
+
 app = Flask(__name__)
 CORS(app, origins="http://localhost:5001")
 
@@ -44,9 +45,19 @@ def login():
         return jsonify({'message': 'Login successfully'})
     return jsonify({'message': 'Account not found!'})
 
-# @app.route('/reset', methods=['GET'])
-# def login():
-#     pass
+dashboard_state = {"enabled": True} 
+@app.route('/dashboard', methods=['GET'])
+def get_dashboard_state():
+    return jsonify(dashboard_state)
+
+@app.route('/dashboard', methods=['POST'])
+def set_dashboard_state():
+    data = request.get_json()
+    if 'enabled' not in data:
+        return jsonify({'message': 'Missing dashboard state value'}), 400
+    dashboard_state['enabled'] = data['enabled']
+    return jsonify({'message': 'Dashboard state updated', 'enabled': dashboard_state['enabled']})
+
 
 
 if __name__ == '__main__':
